@@ -1,55 +1,49 @@
 import { useState, useRef } from 'react'
 import './App.css'
-
-const ANALYSIS_LABELS = {
-  moisture: '수분도',
-  trouble: '트러블',
-  pore: '모공',
-  wrinkle: '주름',
-  tone: '피부톤',
-}
-
-const ANALYSIS_ICONS = {
-  moisture: '💧',
-  trouble: '🔴',
-  pore: '🔬',
-  wrinkle: '✨',
-  tone: '🎨',
-}
+import { t } from './i18n'
+import Home from './Home'
+import ProfileSetup from './ProfileSetup'
+import ServiceHub from './ServiceHub'
+import PhotoUpload from './PhotoUpload'
+import SkinResult from './SkinResult'
+import HairStyle from './HairStyle'
+import Diet from './Diet'
+import Makeup from './Makeup'
+import Fashion from './Fashion'
+import FinalResult from './FinalResult'
 
 function App() {
-  const [height, setHeight] = useState('')
-  const [weight, setWeight] = useState('')
+  const [lang, setLang] = useState('ko')
+  const [page, setPage] = useState('home')
+  const [userName, setUserName] = useState('')
   const [photo, setPhoto] = useState(null)
   const [photoFile, setPhotoFile] = useState(null)
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState(null)
   const [error, setError] = useState(null)
-  const cameraRef = useRef(null)
-  const galleryRef = useRef(null)
+  const [selections, setSelections] = useState({ skin: null, hair: null, diet: null, makeup: null, fashion: null })
 
-  const handlePhoto = (e) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setPhoto(URL.createObjectURL(file))
-      setPhotoFile(file)
-    }
+  const handleSelect = (key, base64) => {
+    setSelections((prev) => ({ ...prev, [key]: base64 }))
   }
 
-  const isValid = height && weight
+  const selectedCount = Object.values(selections).filter(Boolean).length
+
+  const handlePhotoFile = (file) => {
+    setPhoto(URL.createObjectURL(file))
+    setPhotoFile(file)
+    setPage('hub')
+  }
 
   const handleSubmit = async () => {
-    if (!isValid) return
+    if (!photoFile) return
     setLoading(true)
     setError(null)
 
     try {
       const formData = new FormData()
-      formData.append('height', height)
-      formData.append('weight', weight)
-      if (photoFile) {
-        formData.append('image', photoFile)
-      }
+      formData.append('image', photoFile)
+      formData.append('lang', lang)
 
       const res = await fetch('/api/diagnose', {
         method: 'POST',
@@ -57,12 +51,17 @@ function App() {
       })
 
       if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err.error || '분석에 실패했습니다')
+        const text = await res.text()
+        let msg = 'Analysis failed'
+        try { msg = JSON.parse(text).error || msg } catch {}
+        throw new Error(msg)
       }
 
-      const data = await res.json()
+      const text = await res.text()
+      if (!text) throw new Error('Empty response from server')
+      const data = JSON.parse(text)
       setResult(data)
+      setPage('result')
     } catch (e) {
       setError(e.message)
     } finally {
@@ -73,139 +72,108 @@ function App() {
   const handleReset = () => {
     setResult(null)
     setError(null)
+    setPage('hub')
+  }
+
+  // Individual service pages
+  if (page === 'hairstyle') {
+    return <HairStyle lang={lang} onBack={() => setPage('hub')} onSelect={(b64) => handleSelect('hair', b64)} selected={!!selections.hair} />
+  }
+
+  if (page === 'diet') {
+    return <Diet lang={lang} onBack={() => setPage('hub')} onSelect={(b64) => handleSelect('diet', b64)} selected={!!selections.diet} />
+  }
+
+  if (page === 'makeup') {
+    return <Makeup lang={lang} onBack={() => setPage('hub')} onSelect={(b64) => handleSelect('makeup', b64)} selected={!!selections.makeup} />
+  }
+
+  if (page === 'fashion') {
+    return <Fashion lang={lang} onBack={() => setPage('hub')} onSelect={(b64) => handleSelect('fashion', b64)} selected={!!selections.fashion} />
+  }
+
+  if (page === 'final') {
+    return <FinalResult lang={lang} selections={selections} originalPhoto={photoFile} onBack={() => setPage('hub')} />
   }
 
   if (loading) {
     return (
       <div className="app loading-screen">
+        <div className="home-bg" />
         <div className="loader" />
-        <p className="loading-text">피부를 분석하고 있어요...</p>
+        <p className="loading-text">{t(lang, 'analyzingText')}</p>
+        <p className="loading-sub">{t(lang, 'analyzingSub')}</p>
       </div>
     )
   }
 
-  if (result) {
+  // Skin analysis flow
+  if (page === 'skin') {
     return (
-      <div className="app">
-        <header className="header">
-          <h1>분석 결과</h1>
-          <p>당신의 피부 리포트</p>
-        </header>
-
-        <div className="card score-card">
-          <div className="score-circle">
-            <span className="score-value">{result.overallScore}</span>
-            <span className="score-label">종합점수</span>
-          </div>
-          <p className="skin-type">{result.skinType}</p>
-        </div>
-
-        <div className="analysis-grid">
-          {Object.entries(result.analysis || {}).map(([key, item]) => (
-            <div className="card analysis-card" key={key}>
-              <div className="analysis-header">
-                <span className="analysis-icon">{ANALYSIS_ICONS[key]}</span>
-                <span className="analysis-name">{ANALYSIS_LABELS[key] || key}</span>
-                <span className="analysis-score">{item.score}</span>
-              </div>
-              <p className="analysis-desc">{item.description}</p>
-            </div>
-          ))}
-        </div>
-
-        {result.recommendations?.length > 0 && (
-          <div className="card">
-            <h2>추천 케어</h2>
-            <ul className="recommendations">
-              {result.recommendations.map((rec, i) => (
-                <li key={i}>{rec}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        <div className="cta-container">
-          <button className="cta-btn" onClick={handleReset}>
-            다시 분석하기
-          </button>
-        </div>
-      </div>
+      <PhotoUpload
+        lang={lang}
+        setLang={setLang}
+        photo={photo}
+        photoFile={photoFile}
+        error={error}
+        selections={selections}
+        selectedCount={selectedCount}
+        onPhoto={(file) => { setPhoto(URL.createObjectURL(file)); setPhotoFile(file) }}
+        onSubmit={handleSubmit}
+        onNavigate={setPage}
+        onBack={() => setPage('hub')}
+      />
     )
   }
 
+  if (page === 'result' && result) {
+    return (
+      <SkinResult
+        lang={lang}
+        result={result}
+        photo={photo}
+        selections={selections}
+        onSelect={handleSelect}
+        onReset={handleReset}
+        onNavigate={setPage}
+      />
+    )
+  }
+
+  // Service Hub (1-2 page)
+  if (page === 'hub') {
+    return (
+      <ServiceHub
+        lang={lang}
+        userName={userName}
+        photo={photo}
+        onNavigate={setPage}
+      />
+    )
+  }
+
+  // Profile Setup (1-1 page)
+  if (page === 'profile') {
+    return (
+      <ProfileSetup
+        lang={lang}
+        setLang={setLang}
+        userName={userName}
+        setUserName={setUserName}
+        onPhoto={handlePhotoFile}
+        onBack={() => setPage('home')}
+        onSkip={() => setPage('hub')}
+      />
+    )
+  }
+
+  // Home landing
   return (
-    <div className="app">
-      <header className="header">
-        <h1>Beauty</h1>
-        <p>나만의 뷰티 분석을 시작하세요</p>
-      </header>
-
-      {error && <div className="error-msg">{error}</div>}
-
-      <div className="card">
-        <h2>기본 정보</h2>
-        <div className="input-group">
-          <div className="input-field">
-            <label>키</label>
-            <input
-              type="number"
-              placeholder="cm"
-              value={height}
-              onChange={(e) => setHeight(e.target.value)}
-            />
-          </div>
-          <div className="input-field">
-            <label>몸무게</label>
-            <input
-              type="number"
-              placeholder="kg"
-              value={weight}
-              onChange={(e) => setWeight(e.target.value)}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="card">
-        <h2>사진</h2>
-        <div className="photo-buttons">
-          <button className="photo-btn" onClick={() => cameraRef.current?.click()}>
-            <span className="icon">📷</span>
-            촬영
-          </button>
-          <button className="photo-btn" onClick={() => galleryRef.current?.click()}>
-            <span className="icon">🖼️</span>
-            갤러리
-          </button>
-        </div>
-        <input
-          ref={cameraRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          hidden
-          onChange={handlePhoto}
-        />
-        <input
-          ref={galleryRef}
-          type="file"
-          accept="image/*"
-          hidden
-          onChange={handlePhoto}
-        />
-        {photo && (
-          <div className="photo-preview">
-            <img src={photo} alt="미리보기" />
-          </div>
-        )}
-      </div>
-
-      <div className="cta-container">
-        <button className="cta-btn" disabled={!isValid} onClick={handleSubmit}>
-          다음
-        </button>
-      </div>
-    </div>
+    <Home
+      lang={lang}
+      setLang={setLang}
+      onStartGlowUp={() => setPage('profile')}
+    />
   )
 }
 
