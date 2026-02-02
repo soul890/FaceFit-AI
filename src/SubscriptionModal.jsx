@@ -41,7 +41,7 @@ function SubscriptionModal({ lang, onClose }) {
         <div className="sub-modal-badge">PREMIUM</div>
         <h2 className="sub-modal-title">{t(lang, 'subTitle')}</h2>
         <p className="sub-modal-price">
-          <span className="sub-price-amount">$4.99</span>
+          <span className="sub-price-amount">$8.99</span>
           <span className="sub-price-period">/{t(lang, 'subMonth')}</span>
         </p>
 
