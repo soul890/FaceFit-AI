@@ -168,7 +168,7 @@ function SkinResult({ lang, result, photo, photoFile, selections, onSelect, onRe
           )}
         </div>
 
-        {/* Glass Skin Prescription - Improvement Details */}
+        {/* Glass Skin Guide - Improvement Details */}
         {skinImageText && (
           <section className="clinic-section">
             <div className="clinic-card">

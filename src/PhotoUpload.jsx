@@ -31,7 +31,7 @@ function PhotoUpload({ lang, photo, photoFile, error, selectedCount, onPhoto, on
         <div className="clinic-section">
           <div className="clinic-report-header">
             <div>
-              <span className="clinic-label">Skin Clinic Report</span>
+              <span className="clinic-label">Beauty Style Report</span>
               <span className="clinic-scan-title">Luminosity Scan</span>
             </div>
             <div className="clinic-ai-badge">
@@ -75,14 +75,14 @@ function PhotoUpload({ lang, photo, photoFile, error, selectedCount, onPhoto, on
 
         {error && <div className="clinic-section"><div className="error-msg">{error}</div></div>}
 
-        {/* Glass Skin Prescription */}
+        {/* Glass Skin Guide */}
         <section className="clinic-section">
           <div className="clinic-card">
             <div className="clinic-card-header">
               <div className="clinic-card-icon">
                 <span className="material-symbols-outlined" style={{ fontSize: 18 }}>clinical_notes</span>
               </div>
-              <h2 className="clinic-card-title">Glass Skin Prescription</h2>
+              <h2 className="clinic-card-title">Glass Skin Guide</h2>
             </div>
             <div className="clinic-routines">
               <div className="clinic-routine">

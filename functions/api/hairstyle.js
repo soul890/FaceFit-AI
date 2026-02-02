@@ -36,7 +36,7 @@ export async function onRequestPost(context) {
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent?key=${apiKey}`;
 
     // 1) 이미지 생성: 3x3 그리드 헤어스타일
-    const imagePrompt = `너는 최고의 피부과전문가(박사), 헤어스타일전문가(박사)이야. 업로드한 사진속 사람의 얼굴형, 이목구비, 나이대, 머리카락 질감, 피부톤을 정밀하게 분석한 후, 이 사람에게 가장 잘 어울리는 헤어스타일 10개를 5*2 그리드로 생성해줘.
+    const imagePrompt = `너는 최고의 뷰티 스타일리스트이자 헤어스타일 전문가야. 업로드한 사진속 사람의 얼굴형, 이목구비, 나이대, 머리카락 질감, 피부톤을 정밀하게 분석한 후, 이 사람에게 가장 잘 어울리는 헤어스타일 10개를 5*2 그리드로 생성해줘.
 
 [핵심 원칙]
 - AI로서 전문가의 시각으로 이 사람에게 가장 어울리는 스타일을 자유롭게 추천해줘
