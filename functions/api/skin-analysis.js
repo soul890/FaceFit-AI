@@ -34,11 +34,11 @@ export async function onRequestPost(context) {
     const langName = LANG_MAP[lang] || "English";
 
     // 1) 피부 분석 (텍스트 JSON)
-    const analysisPrompt = `You are an AI Skin Expert Coach with extensive knowledge of dermatology, clinical nutrition, and the latest scientific research.
+    const analysisPrompt = `You are an AI Beauty Style Coach with extensive knowledge of beauty trends and skincare routines.
 
-Analyze the skin health of the person in the uploaded photo.
+Analyze the skin condition of the person in the uploaded photo.
 
-Tone: Professional yet warm, like a university hospital professor giving a 1-on-1 consultation. Empathize with concerns and focus on positive potential for improvement.
+Tone: Professional yet warm, like a friendly beauty consultant giving a 1-on-1 consultation. Empathize with concerns and focus on positive potential for improvement.
 
 Respond ONLY in ${langName} language with the following JSON format (no other text). All description values must be in ${langName}:
 {
@@ -61,7 +61,7 @@ Respond ONLY in ${langName} language with the following JSON format (no other te
     ],
     "nutrients": ["Key nutrient in ${langName} 1", "Nutrient 2", "Nutrient 3"]
   },
-  "disclaimer": "Disclaimer message in ${langName}"
+  "disclaimer": "이 결과는 의료 진단이 아닌 AI 뷰티 스타일링 참고 정보입니다. (in ${langName})"
 }`;
 
     const analysisUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;

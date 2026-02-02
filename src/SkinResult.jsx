@@ -38,7 +38,7 @@ function SkinResult({ lang, result, photo, photoFile, selections, onSelect, onRe
         const formData = new FormData()
         formData.append('image', photoFile)
         formData.append('lang', lang)
-        const res = await fetch('/api/diagnose-image', { method: 'POST', body: formData })
+        const res = await fetch('/api/skin-image', { method: 'POST', body: formData })
         if (res.ok && !cancelled) {
           const data = await res.json()
           if (data.skinImage) setSkinImage(data.skinImage)
@@ -53,7 +53,7 @@ function SkinResult({ lang, result, photo, photoFile, selections, onSelect, onRe
   }, [skinImage, photoFile, lang])
 
   const onShare = async () => {
-    const title = t(lang, 'skinClinicReport')
+    const title = t(lang, 'skinBeautyReport')
     const text = `${title}\n${t(lang, 'analysisScore')}: ${result.overallScore}/100\n${result.skinType || ''}`
     let file = null
     if (skinImage) {
@@ -103,7 +103,7 @@ function SkinResult({ lang, result, photo, photoFile, selections, onSelect, onRe
         <div className="clinic-section">
           <div className="clinic-report-header">
             <div>
-              <span className="clinic-label">{t(lang, 'skinClinicReport')}</span>
+              <span className="clinic-label">{t(lang, 'skinBeautyReport')}</span>
               <span className="clinic-scan-title">{result.skinType || 'Skin Analysis'}</span>
             </div>
             <div className="clinic-ai-badge">
@@ -176,7 +176,7 @@ function SkinResult({ lang, result, photo, photoFile, selections, onSelect, onRe
                 <div className="clinic-card-icon">
                   <span className="material-symbols-outlined" style={{ fontSize: 18 }}>clinical_notes</span>
                 </div>
-                <h2 className="clinic-card-title">{t(lang, 'glassSkinPrescription')}</h2>
+                <h2 className="clinic-card-title">{t(lang, 'glassSkinGuide')}</h2>
               </div>
               <p className="cr-detail-text">{skinImageText}</p>
             </div>

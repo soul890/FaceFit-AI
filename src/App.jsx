@@ -45,7 +45,7 @@ function App() {
       formData.append('image', photoFile)
       formData.append('lang', lang)
 
-      const res = await fetch('/api/diagnose', {
+      const res = await fetch('/api/skin-analysis', {
         method: 'POST',
         body: formData,
       })
