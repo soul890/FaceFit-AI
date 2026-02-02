@@ -17,7 +17,7 @@ export async function onRequestPost(context) {
 
     // If checkoutId provided, look up the customer from Polar
     if (checkoutId && !cid) {
-      const res = await fetch(`https://api.polar.sh/v1/checkouts/${checkoutId}`, {
+      const res = await fetch(`https://sandbox-api.polar.sh/v1/checkouts/${checkoutId}`, {
         headers: { Authorization: `Bearer ${POLAR_ACCESS_TOKEN}` },
       });
       if (res.ok) {
@@ -53,7 +53,7 @@ export async function onRequestPost(context) {
     }
 
     // Fallback: check Polar API directly
-    const subRes = await fetch(`https://api.polar.sh/v1/subscriptions/?customer_id=${cid}&active=true`, {
+    const subRes = await fetch(`https://sandbox-api.polar.sh/v1/subscriptions/?customer_id=${cid}&active=true`, {
       headers: { Authorization: `Bearer ${POLAR_ACCESS_TOKEN}` },
     });
 

@@ -23,7 +23,7 @@ export async function onRequestPost(context) {
 
     const origin = new URL(request.url).origin;
 
-    const res = await fetch("https://api.polar.sh/v1/checkouts/", {
+    const res = await fetch("https://sandbox-api.polar.sh/v1/checkouts/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
