@@ -32,7 +32,7 @@ export async function onRequestPost(context) {
       body: JSON.stringify({
         products: [PRODUCT_ID],
         customer_email: email,
-        success_url: `${origin}/?page=success&checkout_id={CHECKOUT_SESSION_ID}`,
+        success_url: `${origin}/?page=success&checkout_id={CHECKOUT_ID}`,
       }),
     });
 
