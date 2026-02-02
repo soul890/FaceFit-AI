@@ -1,21 +1,19 @@
 import { useState, useEffect } from 'react'
 import { t } from './i18n'
 
-async function handleShare(lang, result, t) {
+async function handleShare(lang, result, skinImg, t) {
   const title = t(lang, 'skinClinicReport')
   const text = `${title}\n${t(lang, 'analysisScore')}: ${result.overallScore}/100\n${result.skinType || ''}`
 
-  // base64 이미지를 File로 변환
   let file = null
-  if (skinImage) {
+  if (skinImg) {
     try {
-      const res = await fetch(`data:image/png;base64,${skinImage}`)
+      const res = await fetch(`data:image/png;base64,${skinImg}`)
       const blob = await res.blob()
       file = new File([blob], 'skin-result.png', { type: 'image/png' })
     } catch {}
   }
 
-  // Web Share API 지원 시
   if (navigator.share) {
     try {
       const shareData = { title, text }
@@ -29,7 +27,6 @@ async function handleShare(lang, result, t) {
     }
   }
 
-  // Fallback: 클립보드 복사
   try {
     await navigator.clipboard.writeText(text)
     return 'copied'
@@ -90,7 +87,7 @@ function SkinResult({ lang, result, photo, photoFile, selections, onSelect, onRe
   }, [skinImage, photoFile, lang])
 
   const onShare = async () => {
-    const status = await handleShare(lang, result, t)
+    const status = await handleShare(lang, result, skinImage, t)
     if (status === 'copied') {
       setShareMsg(t(lang, 'copiedToClipboard'))
       setTimeout(() => setShareMsg(null), 2000)
