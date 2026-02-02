@@ -64,6 +64,7 @@ function App() {
       setPage('result')
     } catch (e) {
       setError(e.message)
+      setPage('skin')
     } finally {
       setLoading(false)
     }
