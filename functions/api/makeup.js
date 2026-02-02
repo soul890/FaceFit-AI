@@ -1,5 +1,17 @@
 const LANG_MAP = { ko: "Korean", en: "English", ja: "Japanese", zh: "Chinese", hi: "Hindi", de: "German", fr: "French", ru: "Russian", mn: "Mongolian", tr: "Turkish", fa: "Persian (Farsi)" };
 
+const STYLE_PROMPTS = {
+  "glow-natural": "Glow Natural: dewy, hydrated skin with minimal makeup. Soft brown tones, natural lip tint, subtle highlighter. Daily casual look.",
+  "cool-pure": "Cool-tone Pure: clean blue/pink-based makeup. Light lavender or pink eyeshadow, MLBB pink lip, porcelain-like base. Innocent and fresh.",
+  "warm-coral": "Warm Coral: warm coral/peach tones throughout. Coral eyeshadow, coral-pink blush, coral lip tint. Bright and youthful.",
+  "smoky-chic": "Smoky Chic: urban sophisticated smoky eyes. Dark brown/charcoal gradient eyeshadow, sharp liner, nude-mauve lip. City-cool vibe.",
+  "rose-glam": "Rosé Glam: glamorous rose/berry tones. Rose-gold shimmer eye, berry-toned lips, luminous pink blush. Elegant evening look.",
+  "dewy-glass": "Dewy Glass Skin: ultra-dewy transparent makeup. Glass-skin base, sheer wash of color, glossy lip, water-drop highlight. K-beauty signature.",
+  "retro-mood": "Retro Mood: vintage-inspired look. Warm brown/orange eye tones, bold red or brick lip as focal point, matte base. 70s-90s nostalgia.",
+  "y2k-pop": "Y2K Pop: trendy glitter and color pop. Sparkle/glitter on eyes or cheeks, playful color eyeliner, glossy fruit-toned lip. Gen-Z fun.",
+  "wedding-elegance": "Wedding Elegance: formal special-occasion look. Flawless long-lasting base, champagne shimmer eyes, elegant rosy lip, sculpted contour. Timeless grace.",
+};
+
 export async function onRequestPost(context) {
   const { request, env } = context;
   const apiKey = env.GEMINI_API_KEY;
@@ -32,64 +44,50 @@ export async function onRequestPost(context) {
     const mimeType = imageFile.type || "image/jpeg";
     const lang = formData.get("lang") || "en";
     const langName = LANG_MAP[lang] || "English";
+    const styleId = formData.get("styleId") || "glow-natural";
+    const styleDesc = STYLE_PROMPTS[styleId] || STYLE_PROMPTS["glow-natural"];
+    const customDesc = formData.get("customDesc") || "";
 
-    // 1) K-Beauty 메이크업 전문가 분석 (텍스트 JSON)
-    const analysisPrompt = `You are a world-renowned K-Beauty makeup artist (20+ years of experience) who has worked with top Korean celebrities. You specialize in analyzing skin tones (warm/cool/neutral) and recommending personalized Korean makeup techniques.
+    const customLine = customDesc ? `\nAdditional user request: "${customDesc}"` : "";
 
-Analyze the person's face in the uploaded photo — their skin tone (undertone), face shape, eye shape, lip shape, and overall features — then provide a complete K-Beauty makeup recommendation.
+    // Step 1: Analysis with gemini-2.0-flash
+    const analysisPrompt = `You are a world-renowned K-Beauty makeup artist (20+ years experience) who has worked with top Korean celebrities.
 
-Tone: Like a warm, friendly Korean makeup artist giving a personal consultation at a high-end beauty studio in Gangnam.
+The user wants this makeup style: "${styleDesc}"${customLine}
+
+Analyze the person's face in the uploaded photo — skin tone, undertone, face shape, eye shape — then provide a K-Beauty makeup recommendation tailored to the selected style.
 
 Respond ONLY in ${langName} language with the following JSON format (no other text). All text values must be in ${langName}:
 {
   "skinToneAnalysis": {
     "undertone": "Warm / Cool / Neutral",
-    "season": "Personal color season (e.g., Spring Warm, Summer Cool, Autumn Warm, Winter Cool)",
-    "description": "Detailed skin tone analysis (2-3 sentences)"
-  },
-  "faceAnalysis": {
-    "faceShape": "Face shape type",
-    "eyeShape": "Eye shape type",
-    "lipShape": "Lip shape type",
-    "strengths": "Facial feature strengths to highlight (2-3 sentences)"
+    "season": "Personal color season (e.g., Spring Warm, Summer Cool)",
+    "description": "How this style works with their skin tone (2-3 sentences)"
   },
   "makeupGuide": {
     "base": {
-      "foundation": "Recommended foundation shade and type",
-      "primer": "Primer recommendation",
-      "concealer": "Concealer tips",
-      "setting": "Setting powder/spray recommendation",
-      "tip": "K-beauty base makeup tip (2-3 sentences)"
+      "foundation": "Foundation shade and type for this look",
+      "tip": "Base makeup technique for this style (2-3 sentences)"
     },
     "eye": {
-      "eyeshadow": "Recommended eyeshadow palette colors and placement",
-      "eyeliner": "Eyeliner style and technique",
-      "mascara": "Mascara recommendation",
-      "eyebrow": "Eyebrow shape and product recommendation",
-      "tip": "K-beauty eye makeup tip (2-3 sentences)"
+      "eyeshadow": "Eyeshadow colors and placement for this style",
+      "tip": "Eye makeup technique (2-3 sentences)"
     },
     "lip": {
-      "color": "Recommended lip colors (2-3 options)",
-      "technique": "Application technique (e.g., gradient lip, full lip)",
-      "product": "Product type recommendation (tint, matte, gloss)",
-      "tip": "K-beauty lip tip (2-3 sentences)"
+      "color": "Lip color recommendation for this style",
+      "tip": "Lip technique (2-3 sentences)"
     },
     "cheek": {
       "blush": "Blush color and placement",
-      "contour": "Contouring guide for face shape",
-      "highlight": "Highlighter placement",
-      "tip": "K-beauty cheek tip (2-3 sentences)"
+      "tip": "Cheek technique (2-3 sentences)"
     }
   },
-  "looks": [
-    { "name": "Look name (e.g., Daily Natural)", "description": "Brief description of the complete look", "occasion": "When to wear" },
-    { "name": "Second look", "description": "Description", "occasion": "Occasion" },
-    { "name": "Third look", "description": "Description", "occasion": "Occasion" }
-  ],
   "productRecommendations": [
-    { "category": "Category (e.g., Foundation)", "brand": "Korean brand name", "product": "Product name", "reason": "Why it suits this person" }
+    { "category": "Category", "brand": "Korean brand", "product": "Product name", "reason": "Why it suits" },
+    { "category": "Category", "brand": "Korean brand", "product": "Product name", "reason": "Why it suits" },
+    { "category": "Category", "brand": "Korean brand", "product": "Product name", "reason": "Why it suits" }
   ],
-  "proTip": "A special pro tip from the K-beauty artist (2-3 sentences)"
+  "proTip": "A special pro tip for achieving this look perfectly (2-3 sentences)"
 }`;
 
     const analysisUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
@@ -130,37 +128,35 @@ Respond ONLY in ${langName} language with the following JSON format (no other te
 
     if (!analysisResult) {
       return new Response(
-        JSON.stringify({ error: "분석에 실패했습니다." }),
+        JSON.stringify({ error: "Analysis failed" }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // 2) Before & After 이미지 생성
-    const bestLook = analysisResult.looks?.[0]?.name || "Natural K-Beauty";
+    // Step 2: Generate makeup result image with gemini-3-pro-image-preview
     const lipColor = analysisResult.makeupGuide?.lip?.color || "";
     const eyeshadow = analysisResult.makeupGuide?.eye?.eyeshadow || "";
     const blush = analysisResult.makeupGuide?.cheek?.blush || "";
 
     const imagePrompt = `너는 한국 최고의 K-Beauty 메이크업 아티스트(20년 경력)이야.
 
-업로드한 사진을 기반으로 **Before & After** 이미지를 생성해줘.
+업로드한 사진의 사람에게 다음 메이크업을 적용해줘.
 
-**이미지 구성:**
-- 왼쪽: "BEFORE" — 업로드한 사진과 동일한 민낯(노메이크업) 얼굴. 원본과 최대한 동일하게 유지.
-- 오른쪽: "AFTER" — K-Beauty 풀 메이크업을 적용한 모습.
+메이크업 컨셉: ${styleDesc}
+${customDesc ? `추가 요청: ${customDesc}` : ""}
 
-**AFTER 메이크업 적용 사항:**
-- 피부: 촉촉한 광채 베이스, 자연스러운 톤보정, 피부결 보정
-- 눈: ${eyeshadow}, 자연스러운 아이라인, 속눈썹 강조
-- 입술: ${lipColor}, 한국식 그라데이션 립
-- 볼: ${blush}, 자연스러운 혈색
-- 전체적으로 "${bestLook}" 느낌의 K-Beauty 메이크업
+적용할 메이크업:
+- 아이 메이크업: ${eyeshadow}
+- 립 컬러: ${lipColor}
+- 치크 컬러: ${blush}
 
 **중요 규칙:**
-- 얼굴 형태, 눈코입 위치, 헤어스타일은 절대 변경하지 마.
-- BEFORE와 AFTER의 얼굴이 동일 인물임이 확실히 보여야 해.
-- 이미지 위에 왼쪽은 "BEFORE", 오른쪽은 "AFTER"를 표시해줘.
-- 배경은 따뜻한 실내 조명의 자연스러운 분위기로 통일해줘.`;
+- 업로드한 사진과 동일한 사람의 얼굴 특징(눈, 코, 입, 얼굴형)을 유지해
+- 헤어스타일도 동일하게 유지해
+- 메이크업만 자연스럽게 적용해. 프로 메이크업 아티스트가 직접 한 것처럼.
+- 따뜻한 뷰티 스튜디오 조명
+- 1장의 클로즈업~미드샷 포트레이트만 생성해
+- 그리드나 Before/After 비교 이미지는 절대 만들지 마`;
 
     const imageUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent?key=${apiKey}`;
 
@@ -186,7 +182,6 @@ Respond ONLY in ${langName} language with the following JSON format (no other te
     });
 
     let makeupImage = null;
-    let makeupImageText = "";
     if (imageResponse.ok) {
       const chunks = await imageResponse.json();
       const chunkArray = Array.isArray(chunks) ? chunks : [chunks];
@@ -194,7 +189,6 @@ Respond ONLY in ${langName} language with the following JSON format (no other te
         const parts = chunk.candidates?.[0]?.content?.parts || [];
         for (const part of parts) {
           if (part.inlineData) makeupImage = part.inlineData.data;
-          if (typeof part.text === "string") makeupImageText += part.text;
         }
       }
     }
@@ -202,7 +196,6 @@ Respond ONLY in ${langName} language with the following JSON format (no other te
     return new Response(JSON.stringify({
       ...analysisResult,
       makeupImage,
-      makeupImageText,
     }), {
       headers: { "Content-Type": "application/json" },
     });

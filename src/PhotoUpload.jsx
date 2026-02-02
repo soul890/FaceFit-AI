@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import { t } from './i18n'
 
-function PhotoUpload({ lang, setLang, photo, photoFile, error, selections, selectedCount, onPhoto, onSubmit, onNavigate, onBack }) {
+function PhotoUpload({ lang, photo, photoFile, error, selectedCount, onPhoto, onSubmit, onNavigate, onBack }) {
   const cameraRef = useRef(null)
   const galleryRef = useRef(null)
 
@@ -103,63 +103,6 @@ function PhotoUpload({ lang, setLang, photo, photoFile, error, selections, selec
               <div>
                 <h4 className="clinic-tea-title">Korean Tea Secret</h4>
                 <p className="clinic-tea-desc">"Sip on Barley Tea (Bori-cha) daily to flush out toxins and boost internal glow."</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Curated Regimen - Navigation */}
-        <section className="clinic-section-full">
-          <div className="clinic-regimen-header">
-            <h2 className="clinic-regimen-title">Curated Regimen</h2>
-            <button className="clinic-see-steps">See Steps</button>
-          </div>
-          <div className="clinic-regimen-scroll">
-            <div className="clinic-step-card" onClick={() => onNavigate('hairstyle')}>
-              <div className="clinic-step-img-wrap">
-                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDGWW2vpQ7OZR2CcivasXemmVRu7L4plSUbxLDx9kj_Dncz3b4zM4MBjlBXfHA2t2mNKDurJDAGunTWGIll_KZJj615CqIY6XYuUUav246VEvUeFpNgdmd1zyYwPk5DAjPrRQl6QwTm3EjDbyHKwMFtPLV9mdwuKo38ic8Lpki_awri_q7ajitSWh5bSUCX_qAwdIZxScK7KTWA_aQiHdmkm46Pe8WlkSLjJSusCANCjic0mn_2sUQ5ENN4pY7cUVpIFo3pdCvKNavy" alt="Hair" className="clinic-step-img" />
-                <div className="clinic-step-badge">STEP 1</div>
-                {selections.hair && <div className="clinic-step-check"><span className="material-symbols-outlined" style={{ fontSize: 16 }}>check</span></div>}
-              </div>
-              <div className="clinic-step-info">
-                <span className="clinic-step-category">Hairstyle</span>
-                <span className="clinic-step-name">{t(lang, 'hairNav')}</span>
-              </div>
-            </div>
-
-            <div className="clinic-step-card" onClick={() => onNavigate('makeup')}>
-              <div className="clinic-step-img-wrap">
-                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvUO2BLqTkKwq-qbPFhXTLUdXX9s6ZeKsoT2Nt6COuJqALRRzGSN6k5akSfzPLoc1HafPj2FWpIr6IfdIT_cus5yM9HWqRlT4L4qPplNe3_mb9fC6cJvd2KqXMxrvSVZCZXdov7m3-wlTVagBJd1eJdXPhPBV3QueIwM074Sjf_3q9jYc6Okh3KfhwChBVcH8hPqmBJgWD9UIAReFZLLCL6VKHMJFr8nPCpfAkIYqZ1ucb40Jn9iUpy_BTJRQuMWqvoSSDyGf-FN7D" alt="Makeup" className="clinic-step-img" />
-                <div className="clinic-step-badge">STEP 2</div>
-                {selections.makeup && <div className="clinic-step-check"><span className="material-symbols-outlined" style={{ fontSize: 16 }}>check</span></div>}
-              </div>
-              <div className="clinic-step-info">
-                <span className="clinic-step-category">Makeup</span>
-                <span className="clinic-step-name">{t(lang, 'makeupNav')}</span>
-              </div>
-            </div>
-
-            <div className="clinic-step-card" onClick={() => onNavigate('diet')}>
-              <div className="clinic-step-img-wrap">
-                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCECFqsdbzlU_Cf0WFdeW8lKQ14SqWDyXojNjFVKAJvD-E9AjKl5VYwrDbdAp0zaPW50h8ljmDdOUr-OU5YaA-WP-Bp_N39SqnuK9uoegaAaGHFzd3tX8OGqP40c7nFRh_7EQqJUWs-yfaWPQf0XtfvCB7eT1whf6xSs0WS77UoyD0aATuZ4LdAxvLW3sPMgmzqKivYBA4NK2Td9PahXLeEobfy4p0s9t4MMtIcmTy7MPgt0qdP18ctwtl0ecVXd_V2RxvGzR83lv1S" alt="Diet" className="clinic-step-img" />
-                <div className="clinic-step-badge">DIET</div>
-                {selections.diet && <div className="clinic-step-check"><span className="material-symbols-outlined" style={{ fontSize: 16 }}>check</span></div>}
-              </div>
-              <div className="clinic-step-info">
-                <span className="clinic-step-category">Nutrition</span>
-                <span className="clinic-step-name">{t(lang, 'dietNav')}</span>
-              </div>
-            </div>
-
-            <div className="clinic-step-card" onClick={() => onNavigate('fashion')}>
-              <div className="clinic-step-img-wrap">
-                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBoX81TUDrvaNkoTaEosc1L7RAZ7rOcl_UCgojWArBvHE9d8DDK70XtV2wpKcGCTPhxP5UJtmXy0z4KGG6nFdBFaOPOGFoD6MGWq1PAr4-Gr3futl6p-aALxnbF_Ublri6HUrnx5FEe9RcbmM064yAsKJHBqua9Lp0Oq6_vS4Eb--Oamuo74b1IzOv8vFt0NBxecfwOcMmBFGGgTsqh7UN-4hYQdKxsbI54fP11u72lfemL5iR5XbVHrEadPpJklY-VCzpN7BEfd7oH" alt="Fashion" className="clinic-step-img" />
-                <div className="clinic-step-badge">STEP 3</div>
-                {selections.fashion && <div className="clinic-step-check"><span className="material-symbols-outlined" style={{ fontSize: 16 }}>check</span></div>}
-              </div>
-              <div className="clinic-step-info">
-                <span className="clinic-step-category">Fashion</span>
-                <span className="clinic-step-name">{t(lang, 'fashionNav')}</span>
               </div>
             </div>
           </div>

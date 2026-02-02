@@ -1,6 +1,127 @@
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { t } from './i18n'
 
+const BANNER_SLIDES = [
+  '/image1.png',
+  '/image2.png',
+  '/image3.png',
+  '/image4.png',
+  '/image5.png',
+]
+
+const SLIDE_INTERVAL = 7000
+const FPS = 60
+
 function ServiceHub({ lang, userName, photo, onNavigate }) {
+  const [activeSlide, setActiveSlide] = useState(0)
+  const [fading, setFading] = useState(false)
+  const containerRef = useRef(null)
+  const imgRef = useRef(null)
+  const rafRef = useRef(null)
+  const panX = useRef(0)
+  const dragging = useRef(false)
+  const dragStartX = useRef(0)
+  const dragPanStart = useRef(0)
+  const timerRef = useRef(null)
+  const pendingSlide = useRef(null)
+
+  const getMaxPan = useCallback(() => {
+    const img = imgRef.current
+    const box = containerRef.current
+    if (!img || !box || !img.naturalWidth) return 0
+    const renderedW = img.naturalWidth * (box.offsetHeight / img.naturalHeight)
+    return Math.max(0, renderedW - box.offsetWidth)
+  }, [])
+
+  const applyPan = useCallback(() => {
+    if (imgRef.current) {
+      imgRef.current.style.transform = `translateX(-${panX.current}px)`
+    }
+  }, [])
+
+  const animate = useCallback(() => {
+    if (!dragging.current) {
+      const max = getMaxPan()
+      if (max > 0) {
+        const speed = max / ((SLIDE_INTERVAL / 1000) * FPS)
+        panX.current = Math.min(panX.current + speed, max)
+        applyPan()
+      }
+    }
+    rafRef.current = requestAnimationFrame(animate)
+  }, [getMaxPan, applyPan])
+
+  const changeSlide = useCallback((idx) => {
+    pendingSlide.current = idx
+    setFading(true)
+    setTimeout(() => {
+      setActiveSlide(idx)
+      panX.current = 0
+      applyPan()
+      setFading(false)
+    }, 300)
+  }, [applyPan])
+
+  const startTimer = useCallback(() => {
+    clearInterval(timerRef.current)
+    timerRef.current = setInterval(() => {
+      if (!dragging.current) {
+        changeSlide((pendingSlide.current ?? 0 + 1) % BANNER_SLIDES.length)
+      }
+    }, SLIDE_INTERVAL)
+  }, [changeSlide])
+
+  // Auto-advance: use activeSlide to compute next
+  useEffect(() => {
+    clearInterval(timerRef.current)
+    timerRef.current = setInterval(() => {
+      if (!dragging.current) {
+        const next = (activeSlide + 1) % BANNER_SLIDES.length
+        changeSlide(next)
+      }
+    }, SLIDE_INTERVAL)
+    return () => clearInterval(timerRef.current)
+  }, [activeSlide, changeSlide])
+
+  useEffect(() => {
+    rafRef.current = requestAnimationFrame(animate)
+    return () => cancelAnimationFrame(rafRef.current)
+  }, [animate])
+
+  const onPointerDown = (e) => {
+    dragging.current = true
+    dragStartX.current = e.clientX ?? e.touches?.[0]?.clientX ?? 0
+    dragPanStart.current = panX.current
+    e.preventDefault()
+  }
+
+  const onPointerMove = (e) => {
+    if (!dragging.current) return
+    const x = e.clientX ?? e.touches?.[0]?.clientX ?? 0
+    const delta = dragStartX.current - x
+    const max = getMaxPan()
+    panX.current = Math.max(0, Math.min(dragPanStart.current + delta, max))
+    applyPan()
+  }
+
+  const onPointerUp = (e) => {
+    if (!dragging.current) return
+    const endX = e.clientX ?? e.changedTouches?.[0]?.clientX ?? 0
+    const delta = dragStartX.current - endX
+    if (Math.abs(delta) > 80) {
+      if (delta > 0) {
+        changeSlide((activeSlide + 1) % BANNER_SLIDES.length)
+      } else {
+        changeSlide((activeSlide - 1 + BANNER_SLIDES.length) % BANNER_SLIDES.length)
+      }
+    }
+    dragging.current = false
+  }
+
+  const goToSlide = (idx) => {
+    changeSlide(idx)
+  }
+
   return (
     <div className="hub-page">
       {/* Header */}
@@ -24,34 +145,35 @@ function ServiceHub({ lang, userName, photo, onNavigate }) {
         </button>
       </header>
 
-      {/* Transformation Banner */}
+      {/* Carousel Banner */}
       <div className="hub-banner-wrap">
-        <div className="hub-banner">
-          {photo && (
-            <img src={photo} alt="Current" className="hub-banner-bg" />
-          )}
-          <div className="hub-banner-overlay" />
-          {/* Tags */}
-          <div className="hub-banner-tags">
-            <div className="hub-banner-half">
-              <span className="hub-tag-dark">{t(lang, 'hubCurrent')}</span>
-            </div>
-            <div className="hub-banner-half hub-banner-half-right">
-              <span className="hub-tag-pink">{t(lang, 'hubAiTarget')}</span>
-            </div>
-          </div>
-          {/* Center badge */}
-          <div className="hub-banner-center">
-            <div className="hub-styling-badge">
-              <span className="material-symbols-outlined hub-spin" style={{ fontSize: 14 }}>auto_fix_high</span>
-              <p>{t(lang, 'hubStylingProgress')}</p>
-            </div>
-          </div>
-          {/* Bottom text */}
-          <div className="hub-banner-bottom">
-            <p className="hub-banner-title">{t(lang, 'hubEvolution')}</p>
-            <p className="hub-banner-sub">{t(lang, 'hubProcessing')}</p>
-          </div>
+        <div
+          className="hub-carousel"
+          ref={containerRef}
+          onMouseDown={onPointerDown}
+          onMouseMove={onPointerMove}
+          onMouseUp={onPointerUp}
+          onMouseLeave={onPointerUp}
+          onTouchStart={onPointerDown}
+          onTouchMove={onPointerMove}
+          onTouchEnd={onPointerUp}
+        >
+          <img
+            ref={imgRef}
+            src={BANNER_SLIDES[activeSlide]}
+            alt=""
+            className={'hub-carousel-img' + (fading ? ' hub-carousel-fade' : '')}
+            draggable={false}
+          />
+        </div>
+        <div className="hub-carousel-dots">
+          {BANNER_SLIDES.map((_, i) => (
+            <button
+              key={i}
+              className={'hub-carousel-dot' + (i === activeSlide ? ' hub-carousel-dot-active' : '')}
+              onClick={() => goToSlide(i)}
+            />
+          ))}
         </div>
       </div>
 
@@ -65,7 +187,7 @@ function ServiceHub({ lang, userName, photo, onNavigate }) {
         {/* Skin Analysis */}
         <div className="hub-card" onClick={() => onNavigate('skin')}>
           <div className="hub-card-icon hub-icon-pink">
-            <span className="material-symbols-outlined" style={{ fontSize: 28 }}>auto_awesome</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 32 }}>auto_awesome</span>
           </div>
           <div className="hub-card-text">
             <h2 className="hub-card-title">{t(lang, 'hubSkin')}</h2>
@@ -76,7 +198,7 @@ function ServiceHub({ lang, userName, photo, onNavigate }) {
         {/* Hair Style */}
         <div className="hub-card" onClick={() => onNavigate('hairstyle')}>
           <div className="hub-card-icon hub-icon-blue">
-            <span className="material-symbols-outlined" style={{ fontSize: 28 }}>content_cut</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 32 }}>content_cut</span>
           </div>
           <div className="hub-card-text">
             <h2 className="hub-card-title">{t(lang, 'hubHair')}</h2>
@@ -87,7 +209,7 @@ function ServiceHub({ lang, userName, photo, onNavigate }) {
         {/* K-Fit Routine */}
         <div className="hub-card" onClick={() => onNavigate('diet')}>
           <div className="hub-card-icon hub-icon-green">
-            <span className="material-symbols-outlined" style={{ fontSize: 28 }}>ecg_heart</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 32 }}>ecg_heart</span>
           </div>
           <div className="hub-card-text">
             <h2 className="hub-card-title">{t(lang, 'hubDiet')}</h2>
@@ -98,7 +220,7 @@ function ServiceHub({ lang, userName, photo, onNavigate }) {
         {/* K-Makeup */}
         <div className="hub-card" onClick={() => onNavigate('makeup')}>
           <div className="hub-card-icon hub-icon-purple">
-            <span className="material-symbols-outlined" style={{ fontSize: 28 }}>palette</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 32 }}>palette</span>
           </div>
           <div className="hub-card-text">
             <h2 className="hub-card-title">{t(lang, 'hubMakeup')}</h2>

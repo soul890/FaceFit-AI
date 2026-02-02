@@ -2430,7 +2430,7 @@ body {
 }
 
 .hub-section-title {
-  font-size: 1.25rem;
+  font-size: 1.375rem;
   font-weight: 800;
   letter-spacing: -0.3px;
   color: #1b0d14;
@@ -2461,7 +2461,7 @@ body {
   border-radius: 1rem;
   border: 1px solid #e7cfdb;
   background: #fff;
-  padding: 20px;
+  padding: 24px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
   cursor: pointer;
   transition: transform 0.15s;
@@ -2472,8 +2472,8 @@ body {
 }
 
 .hub-card-icon {
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -2507,13 +2507,13 @@ body {
 }
 
 .hub-card-title {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: #1b0d14;
 }
 
 .hub-card-sub {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 600;
 }
 
@@ -2543,8 +2543,8 @@ body {
 }
 
 .hub-fashion-icon {
-  width: 56px;
-  height: 56px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   background: #ee2b8c;
   color: #fff;
@@ -2568,7 +2568,7 @@ body {
 }
 
 .hub-fashion-title {
-  font-size: 1.125rem;
+  font-size: 1.25rem;
   font-weight: 800;
   color: #1b0d14;
 }
@@ -2641,4 +2641,174 @@ body {
 
 .hub-nav-active p {
   font-weight: 700;
+}
+
+/* =============================
+   Hub Carousel Banner
+   ============================= */
+.hub-carousel {
+  position: relative;
+  border-radius: 1rem;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.hub-carousel:active {
+  cursor: grabbing;
+}
+
+.hub-carousel-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: auto;
+  max-width: none;
+  display: block;
+  pointer-events: none;
+  will-change: transform;
+  transition: opacity 0.3s ease;
+}
+
+.hub-carousel-fade {
+  opacity: 0;
+}
+
+.hub-carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.hub-carousel-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: #e6d1db;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s, width 0.2s;
+}
+
+.hub-carousel-dot-active {
+  width: 20px;
+  border-radius: 999px;
+  background: #ee2b8c;
+}
+
+/* =============================
+   Responsive – Tablet
+   ============================= */
+@media (min-width: 768px) {
+  .app,
+  .clinic-page {
+    max-width: 680px;
+  }
+
+  .hub-page {
+    max-width: 720px;
+  }
+
+  .hub-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .hub-card-fashion {
+    grid-column: span 3;
+  }
+
+  .clinic-bottom-cta {
+    max-width: 680px;
+  }
+
+  .hub-bottom-nav-wrap {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    max-width: 720px;
+    width: 100%;
+  }
+}
+
+/* =============================
+   Responsive – Desktop
+   ============================= */
+@media (min-width: 1024px) {
+  .app,
+  .clinic-page {
+    max-width: 900px;
+  }
+
+  .hub-page {
+    max-width: 960px;
+  }
+
+  .hub-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .hub-card-fashion {
+    grid-column: span 4;
+  }
+
+  .clinic-section {
+    padding: 0 40px;
+  }
+
+  .clinic-card {
+    padding: 32px;
+  }
+
+  .cr-analysis-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .home-title-sub {
+    font-size: 1.75rem;
+  }
+
+  .home-title-main {
+    font-size: 3.5rem;
+  }
+
+  .home-desc {
+    max-width: 360px;
+    font-size: 1.1rem;
+  }
+
+  .clinic-bottom-cta {
+    max-width: 900px;
+  }
+
+  .hub-bottom-nav-wrap {
+    max-width: 960px;
+  }
+}
+
+/* =============================
+   Responsive – Wide Desktop
+   ============================= */
+@media (min-width: 1280px) {
+  .clinic-page {
+    max-width: 1060px;
+  }
+
+  .hub-page {
+    max-width: 1120px;
+  }
+
+  .clinic-bottom-cta {
+    max-width: 1060px;
+  }
+
+  .hub-bottom-nav-wrap {
+    max-width: 1120px;
+  }
 }
