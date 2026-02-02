@@ -17,7 +17,7 @@ export async function onRequestPost(context) {
 
     // If checkoutId provided, look up the customer from Polar
     if (checkoutId && !cid) {
-      const res = await fetch(`https://api.polar.sh/v1/checkouts/custom/${checkoutId}`, {
+      const res = await fetch(`https://api.polar.sh/v1/checkouts/${checkoutId}`, {
         headers: { Authorization: `Bearer ${POLAR_ACCESS_TOKEN}` },
       });
       if (res.ok) {

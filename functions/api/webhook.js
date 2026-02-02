@@ -10,32 +10,46 @@ export async function onRequestPost(context) {
 
   try {
     const body = await request.text();
-    const signature = request.headers.get("webhook-id");
+    const webhookId = request.headers.get("webhook-id");
     const timestamp = request.headers.get("webhook-timestamp");
     const sig = request.headers.get("webhook-signature");
 
-    // Verify webhook signature using HMAC-SHA256
-    if (!sig || !timestamp || !signature) {
+    if (!sig || !timestamp || !webhookId) {
       return new Response("Missing signature headers", { status: 401 });
+    }
+
+    // Standard Webhooks: secret is base64-encoded before use as HMAC key
+    // Polar secrets may start with "whsec_" prefix which should be stripped
+    let secretBytes;
+    const rawSecret = WEBHOOK_SECRET.startsWith("whsec_")
+      ? WEBHOOK_SECRET.slice(6)
+      : WEBHOOK_SECRET;
+
+    // Decode base64 secret to raw bytes
+    const binaryStr = atob(rawSecret);
+    secretBytes = new Uint8Array(binaryStr.length);
+    for (let i = 0; i < binaryStr.length; i++) {
+      secretBytes[i] = binaryStr.charCodeAt(i);
     }
 
     const encoder = new TextEncoder();
     const key = await crypto.subtle.importKey(
       "raw",
-      encoder.encode(WEBHOOK_SECRET),
+      secretBytes,
       { name: "HMAC", hash: "SHA-256" },
       false,
       ["sign"]
     );
 
-    const signedContent = `${signature}.${timestamp}.${body}`;
+    // Standard Webhooks signed content: "{webhook-id}.{webhook-timestamp}.{body}"
+    const signedContent = `${webhookId}.${timestamp}.${body}`;
     const mac = await crypto.subtle.sign("HMAC", key, encoder.encode(signedContent));
     const expectedSig = btoa(String.fromCharCode(...new Uint8Array(mac)));
 
-    // Polar sends signatures as "v1,<base64>"
+    // Polar sends signatures as "v1,<base64>" (space-separated if multiple)
     const sigParts = sig.split(" ");
     const valid = sigParts.some((s) => {
-      const val = s.replace("v1,", "");
+      const val = s.startsWith("v1,") ? s.slice(3) : s;
       return val === expectedSig;
     });
 
