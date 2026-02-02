@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { t } from './i18n'
 
 async function handleShare(lang, result, t) {
@@ -7,9 +7,9 @@ async function handleShare(lang, result, t) {
 
   // base64 이미지를 File로 변환
   let file = null
-  if (result.skinImage) {
+  if (skinImage) {
     try {
-      const res = await fetch(`data:image/png;base64,${result.skinImage}`)
+      const res = await fetch(`data:image/png;base64,${skinImage}`)
       const blob = await res.blob()
       file = new File([blob], 'skin-result.png', { type: 'image/png' })
     } catch {}
@@ -60,9 +60,34 @@ function getScoreLevel(score) {
   return 1
 }
 
-function SkinResult({ lang, result, photo, selections, onSelect, onReset, onNavigate }) {
+function SkinResult({ lang, result, photo, photoFile, selections, onSelect, onReset, onNavigate }) {
   const [shareMsg, setShareMsg] = useState(null)
+  const [skinImage, setSkinImage] = useState(skinImage || null)
+  const [skinImageText, setSkinImageText] = useState(skinImageText || '')
+  const [imageLoading, setImageLoading] = useState(!skinImage)
   const scoreLevel = getScoreLevel(result.overallScore || 0)
+
+  useEffect(() => {
+    if (skinImage || !photoFile) return
+    let cancelled = false
+    const fetchImage = async () => {
+      try {
+        const formData = new FormData()
+        formData.append('image', photoFile)
+        formData.append('lang', lang)
+        const res = await fetch('/api/diagnose-image', { method: 'POST', body: formData })
+        if (res.ok && !cancelled) {
+          const data = await res.json()
+          if (data.skinImage) setSkinImage(data.skinImage)
+          if (data.skinImageText) setSkinImageText(data.skinImageText)
+        }
+      } catch {} finally {
+        if (!cancelled) setImageLoading(false)
+      }
+    }
+    fetchImage()
+    return () => { cancelled = true }
+  }, [skinImage, photoFile, lang])
 
   const onShare = async () => {
     const status = await handleShare(lang, result, t)
@@ -114,15 +139,22 @@ function SkinResult({ lang, result, photo, selections, onSelect, onReset, onNavi
               <div className="clinic-photo-tag clinic-photo-tag-dark">{t(lang, 'currentPhoto')}</div>
             </div>
             <div className="clinic-photo-card clinic-photo-target">
-              {result.skinImage ? (
+              {skinImage ? (
                 <img
-                  src={`data:image/png;base64,${result.skinImage}`}
+                  src={`data:image/png;base64,${skinImage}`}
                   alt="Glass Target"
                   className="clinic-photo-img"
                 />
               ) : (
                 <div className="clinic-photo-placeholder">
-                  <span className="material-symbols-outlined" style={{ fontSize: 40, color: 'rgba(229,152,155,0.4)' }}>auto_awesome</span>
+                  {imageLoading ? (
+                    <div style={{ textAlign: 'center' }}>
+                      <div className="loader" style={{ width: 32, height: 32, borderTopColor: '#E5989B', margin: '0 auto 8px' }} />
+                      <p style={{ fontSize: 11, color: '#E5989B', fontWeight: 600 }}>{t(lang, 'generatingImage') || 'AI 생성 중...'}</p>
+                    </div>
+                  ) : (
+                    <span className="material-symbols-outlined" style={{ fontSize: 40, color: 'rgba(229,152,155,0.4)' }}>auto_awesome</span>
+                  )}
                 </div>
               )}
               <div className="clinic-photo-tag clinic-photo-tag-pink">{t(lang, 'glassTarget')}</div>
@@ -133,15 +165,15 @@ function SkinResult({ lang, result, photo, selections, onSelect, onReset, onNavi
           </div>
 
           {/* Download / Select buttons */}
-          {result.skinImage && (
+          {skinImage && (
             <div className="cr-action-row">
-              <button className="cr-action-btn" onClick={() => downloadImage(result.skinImage, 'skin-simulation.png')}>
+              <button className="cr-action-btn" onClick={() => downloadImage(skinImage, 'skin-simulation.png')}>
                 <span className="material-symbols-outlined" style={{ fontSize: 16 }}>download</span>
                 <span>{t(lang, 'downloadImage')}</span>
               </button>
               <button
                 className={`cr-action-btn ${selections.skin ? 'cr-action-selected' : 'cr-action-select'}`}
-                onClick={() => onSelect('skin', result.skinImage)}
+                onClick={() => onSelect('skin', skinImage)}
               >
                 <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{selections.skin ? 'check_circle' : 'add_circle_outline'}</span>
                 <span>{selections.skin ? t(lang, 'selectedForFinal') : t(lang, 'selectForFinal')}</span>
@@ -151,7 +183,7 @@ function SkinResult({ lang, result, photo, selections, onSelect, onReset, onNavi
         </div>
 
         {/* Glass Skin Prescription - Improvement Details */}
-        {result.skinImageText && (
+        {skinImageText && (
           <section className="clinic-section">
             <div className="clinic-card">
               <div className="clinic-card-header">
@@ -160,7 +192,7 @@ function SkinResult({ lang, result, photo, selections, onSelect, onReset, onNavi
                 </div>
                 <h2 className="clinic-card-title">{t(lang, 'glassSkinPrescription')}</h2>
               </div>
-              <p className="cr-detail-text">{result.skinImageText}</p>
+              <p className="cr-detail-text">{skinImageText}</p>
             </div>
           </section>
         )}

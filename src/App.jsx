@@ -132,6 +132,7 @@ function App() {
         lang={lang}
         result={result}
         photo={photo}
+        photoFile={photoFile}
         selections={selections}
         onSelect={handleSelect}
         onReset={handleReset}
