@@ -1,40 +1,6 @@
 import { useState, useEffect } from 'react'
 import { t } from './i18n'
 
-async function handleShare(lang, result, skinImg, t) {
-  const title = t(lang, 'skinClinicReport')
-  const text = `${title}\n${t(lang, 'analysisScore')}: ${result.overallScore}/100\n${result.skinType || ''}`
-
-  let file = null
-  if (skinImg) {
-    try {
-      const res = await fetch(`data:image/png;base64,${skinImg}`)
-      const blob = await res.blob()
-      file = new File([blob], 'skin-result.png', { type: 'image/png' })
-    } catch {}
-  }
-
-  if (navigator.share) {
-    try {
-      const shareData = { title, text }
-      if (file && navigator.canShare?.({ files: [file] })) {
-        shareData.files = [file]
-      }
-      await navigator.share(shareData)
-      return 'shared'
-    } catch (e) {
-      if (e.name === 'AbortError') return null
-    }
-  }
-
-  try {
-    await navigator.clipboard.writeText(text)
-    return 'copied'
-  } catch {
-    return null
-  }
-}
-
 const ANALYSIS_ICONS = {
   moisture: 'water_drop',
   trouble: 'report',
@@ -59,9 +25,9 @@ function getScoreLevel(score) {
 
 function SkinResult({ lang, result, photo, photoFile, selections, onSelect, onReset, onNavigate }) {
   const [shareMsg, setShareMsg] = useState(null)
-  const [skinImage, setSkinImage] = useState(skinImage || null)
-  const [skinImageText, setSkinImageText] = useState(skinImageText || '')
-  const [imageLoading, setImageLoading] = useState(!skinImage)
+  const [skinImage, setSkinImage] = useState(result.skinImage || null)
+  const [skinImageText, setSkinImageText] = useState(result.skinImageText || '')
+  const [imageLoading, setImageLoading] = useState(!result.skinImage)
   const scoreLevel = getScoreLevel(result.overallScore || 0)
 
   useEffect(() => {
@@ -87,7 +53,30 @@ function SkinResult({ lang, result, photo, photoFile, selections, onSelect, onRe
   }, [skinImage, photoFile, lang])
 
   const onShare = async () => {
-    const status = await handleShare(lang, result, skinImage, t)
+    const title = t(lang, 'skinClinicReport')
+    const text = `${title}\n${t(lang, 'analysisScore')}: ${result.overallScore}/100\n${result.skinType || ''}`
+    let file = null
+    if (skinImage) {
+      try {
+        const r = await fetch(`data:image/png;base64,${skinImage}`)
+        const blob = await r.blob()
+        file = new File([blob], 'skin-result.png', { type: 'image/png' })
+      } catch {}
+    }
+    let status = null
+    if (navigator.share) {
+      try {
+        const shareData = { title, text }
+        if (file && navigator.canShare?.({ files: [file] })) shareData.files = [file]
+        await navigator.share(shareData)
+        status = 'shared'
+      } catch (e) {
+        if (e.name !== 'AbortError') status = null
+      }
+    }
+    if (!status) {
+      try { await navigator.clipboard.writeText(text); status = 'copied' } catch {}
+    }
     if (status === 'copied') {
       setShareMsg(t(lang, 'copiedToClipboard'))
       setTimeout(() => setShareMsg(null), 2000)
