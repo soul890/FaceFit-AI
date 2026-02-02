@@ -1,3 +1,7 @@
 name = "beauty"
 compatibility_date = "2024-12-01"
 pages_build_output_dir = "dist"
+
+[[kv_namespaces]]
+binding = "SUBSCRIPTIONS"
+id = "641e478b6d5247fba9716fcdf7fe2124"
