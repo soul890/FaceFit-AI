@@ -12,7 +12,7 @@ const BANNER_SLIDES = [
 const SLIDE_INTERVAL = 7000
 const FPS = 60
 
-function ServiceHub({ lang, userName, photo, onNavigate }) {
+function ServiceHub({ lang, userName, photo, onNavigate, subscriptionActive, onUpgrade, usageInfo }) {
   const [activeSlide, setActiveSlide] = useState(0)
   const [fading, setFading] = useState(false)
   const containerRef = useRef(null)
@@ -139,11 +139,26 @@ function ServiceHub({ lang, userName, photo, onNavigate }) {
             {t(lang, 'hubWelcome')}{userName ? `, ${userName}` : ''}
           </h2>
         </div>
-        <button className="hub-notif-btn">
-          <span className="material-symbols-outlined">notifications</span>
-          <span className="hub-notif-dot" />
-        </button>
+        {subscriptionActive ? (
+          <span className="hub-premium-badge">PREMIUM</span>
+        ) : (
+          <button className="hub-upgrade-btn" onClick={onUpgrade}>
+            {t(lang, 'subUpgrade')}
+          </button>
+        )}
       </header>
+
+      {/* Usage info for subscribers */}
+      {subscriptionActive && usageInfo && (
+        <div className="hub-usage-bar">
+          <div className="hub-usage-text">
+            {t(lang, 'subUsage')}: {usageInfo.usage}/{usageInfo.limit}
+          </div>
+          <div className="hub-usage-track">
+            <div className="hub-usage-fill" style={{ width: `${(usageInfo.usage / usageInfo.limit) * 100}%` }} />
+          </div>
+        </div>
+      )}
 
       {/* Carousel Banner */}
       <div className="hub-banner-wrap">
@@ -204,6 +219,7 @@ function ServiceHub({ lang, userName, photo, onNavigate }) {
             <h2 className="hub-card-title">{t(lang, 'hubHair')}</h2>
             <p className="hub-card-sub hub-sub-blue">{t(lang, 'hubHairSub')}</p>
           </div>
+          {!subscriptionActive && <span className="hub-lock-icon material-symbols-outlined">lock</span>}
         </div>
 
         {/* K-Fit Routine */}
@@ -215,6 +231,7 @@ function ServiceHub({ lang, userName, photo, onNavigate }) {
             <h2 className="hub-card-title">{t(lang, 'hubDiet')}</h2>
             <p className="hub-card-sub hub-sub-green">{t(lang, 'hubDietSub')}</p>
           </div>
+          {!subscriptionActive && <span className="hub-lock-icon material-symbols-outlined">lock</span>}
         </div>
 
         {/* K-Makeup */}
@@ -226,6 +243,7 @@ function ServiceHub({ lang, userName, photo, onNavigate }) {
             <h2 className="hub-card-title">{t(lang, 'hubMakeup')}</h2>
             <p className="hub-card-sub hub-sub-purple">{t(lang, 'hubMakeupSub')}</p>
           </div>
+          {!subscriptionActive && <span className="hub-lock-icon material-symbols-outlined">lock</span>}
         </div>
 
         {/* Fashion - full width highlighted */}
@@ -240,7 +258,11 @@ function ServiceHub({ lang, userName, photo, onNavigate }) {
             </div>
             <p className="hub-fashion-sub">{t(lang, 'hubFashionSub')}</p>
           </div>
-          <span className="material-symbols-outlined hub-fashion-arrow">chevron_right</span>
+          {!subscriptionActive ? (
+            <span className="hub-lock-icon material-symbols-outlined">lock</span>
+          ) : (
+            <span className="material-symbols-outlined hub-fashion-arrow">chevron_right</span>
+          )}
         </div>
       </div>
 
